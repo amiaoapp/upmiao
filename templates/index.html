@@ -6,6 +6,7 @@
     <title>B站粉丝数查询</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
         :root {
             --notion-bg: #ffffff;
@@ -308,9 +309,10 @@
 
         .platform-button {
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 48px;
+            height: 64px;
             padding: 0.5rem 0.75rem;
             border: 1px solid var(--notion-border);
             border-radius: 6px;
@@ -318,16 +320,24 @@
             cursor: pointer;
             transition: all 0.2s ease;
             text-align: center;
-            font-size: 1.1rem;
-            font-weight: 500;
+            font-size: 0.75rem;
+            font-family: 'Press Start 2P', 'Pixel', 'Courier New', Courier, monospace;
+            font-weight: 400;
             margin: 0;
         }
 
         .platform-button .platform-icon {
             width: 1.7rem;
             height: 1.7rem;
-            margin-right: 0.5rem;
+            margin: 0 0 0.25rem 0;
             vertical-align: middle;
+        }
+
+        .platform-button span {
+            display: block;
+            font-size: 0.75rem;
+            line-height: 1;
+            margin-top: 0.1rem;
         }
 
         .platform-button.active {
@@ -410,31 +420,35 @@
         <div class="platform-selector">
             <button class="platform-button active" data-platform="bilibili">
                 <img src="https://www.bilibili.com/favicon.ico" alt="B站" class="platform-icon">
-                B站
+                <span>B站</span>
             </button>
             <button class="platform-button" data-platform="youtube">
                 <img src="https://www.youtube.com/favicon.ico" alt="YouTube" class="platform-icon">
-                YouTube
+                <span>YouTube</span>
             </button>
             <button class="platform-button" data-platform="wechat_mp">
-                <img src="https://res.wx.qq.com/a/wx_fed/assets/res/NTI4MWU5.ico" alt="公众号" class="platform-icon">
-                公众号
+                <img src="https://res.wx.qq.com/a/wx_fed/assets/res/NTI4MWU5.ico" alt="微信公众号" class="platform-icon">
+                <span>微信公众号</span>
             </button>
             <button class="platform-button" data-platform="xiaohongshu">
                 <img src="https://www.xiaohongshu.com/favicon.ico" alt="小红书" class="platform-icon">
-                小红书
+                <span>小红书</span>
             </button>
             <button class="platform-button" data-platform="douyin">
                 <img src="https://www.douyin.com/favicon.ico" alt="抖音" class="platform-icon">
-                抖音
+                <span>抖音</span>
             </button>
             <button class="platform-button" data-platform="kuaishou">
                 <img src="https://www.kuaishou.com/favicon.ico" alt="快手" class="platform-icon">
-                快手
+                <span>快手</span>
             </button>
             <button class="platform-button" data-platform="wechat_video">
-                <img src="https://res.wx.qq.com/a/wx_fed/assets/res/NTI4MWU5.ico" alt="视频号" class="platform-icon">
-                视频号
+                <img src="https://res.wx.qq.com/a/wx_fed/assets/res/NTI4MWU5.ico" alt="微信视频号" class="platform-icon">
+                <span>微信视频号</span>
+            </button>
+            <button class="platform-button" data-platform="twitter">
+                <img src="https://x.com/favicon.ico" alt="推特" class="platform-icon">
+                <span>推特</span>
             </button>
         </div>
 
@@ -448,7 +462,7 @@
                 </div>
                 <div class="ml-3">
                     <p class="text-sm text-yellow-700">
-                        YouTube 和 Twitter 查询需要配置 API 密钥。目前仅支持 B站 查询。Telegram频道为公开爬虫。
+                        YouTube 查询需要配置 API 密钥。目前支持 B站 和 Twitter 查询。
                     </p>
                 </div>
             </div>
@@ -551,7 +565,8 @@
                     'xiaohongshu': '请输入小红书用户ID',
                     'douyin': '请输入抖音号',
                     'kuaishou': '请输入快手ID',
-                    'wechat_video': '请输入视频号ID'
+                    'wechat_video': '请输入视频号ID',
+                    'twitter': '请输入推特用户名'
                 }[currentPlatform];
                 document.getElementById('identifier').placeholder = placeholder;
                 // 更新下方提示
@@ -562,7 +577,8 @@
                     'xiaohongshu': '小红书：输入用户ID',
                     'douyin': '抖音：输入抖音号',
                     'kuaishou': '快手：输入ID',
-                    'wechat_video': '视频号：输入ID'
+                    'wechat_video': '视频号：输入ID',
+                    'twitter': '推特：输入用户名'
                 }[currentPlatform];
                 document.getElementById('platformHint').innerHTML = hint;
             });
@@ -619,7 +635,8 @@
                 'xiaohongshu': 'https://www.xiaohongshu.com/favicon.ico',
                 'douyin': 'https://www.douyin.com/favicon.ico',
                 'kuaishou': 'https://www.kuaishou.com/favicon.ico',
-                'wechat_video': 'https://res.wx.qq.com/a/wx_fed/assets/res/NTI4MWU5.ico'
+                'wechat_video': 'https://res.wx.qq.com/a/wx_fed/assets/res/NTI4MWU5.ico',
+                'twitter': 'https://x.com/favicon.ico'
             }[platform];
         }
 
@@ -632,7 +649,8 @@
                 'xiaohongshu': '小红书',
                 'douyin': '抖音',
                 'kuaishou': '快手',
-                'wechat_video': '视频号'
+                'wechat_video': '视频号',
+                'twitter': '推特'
             }[platform];
         }
 
