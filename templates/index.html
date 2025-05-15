@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>B站粉丝数查询</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --notion-bg: #ffffff;
+            --notion-text: #37352f;
+            --notion-gray: #e9e9e9;
+            --notion-hover: #f7f7f7;
+            --notion-border: #e0e0e0;
+            --notion-blue: #2eaadc;
+            --notion-pink: #ff4d4d;
+            --notion-yellow: #ffd700;
+        }
+
+        body {
+            background: var(--notion-bg);
+            color: var(--notion-text);
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Notion 风格背景插画 */
+        .notion-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .notion-shape {
+            position: absolute;
+            opacity: 0.1;
+            transition: all 0.3s ease;
+        }
+
+        .shape-1 {
+            top: 10%;
+            left: 5%;
+            width: 200px;
+            height: 200px;
+            background: var(--notion-blue);
+            border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+            animation: float 8s ease-in-out infinite;
+        }
+
+        .shape-2 {
+            top: 60%;
+            right: 10%;
+            width: 150px;
+            height: 150px;
+            background: var(--notion-pink);
+            border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+            animation: float 6s ease-in-out infinite reverse;
+        }
+
+        .shape-3 {
+            bottom: 10%;
+            left: 20%;
+            width: 100px;
+            height: 100px;
+            background: var(--notion-yellow);
+            border-radius: 50% 50% 20% 80% / 25% 80% 20% 75%;
+            animation: float 7s ease-in-out infinite 1s;
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(20px, 20px) rotate(5deg); }
+            100% { transform: translate(0, 0) rotate(0deg); }
+        }
+
+        .notion-card {
+            background: var(--notion-bg);
+            border: 1px solid var(--notion-border);
+            border-radius: 3px;
+            transition: all 0.2s ease;
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .notion-card:hover {
+            box-shadow: rgba(15, 15, 15, 0.1) 0px 0px 0px 1px,
+                        rgba(15, 15, 15, 0.1) 0px 2px 4px;
+            transform: translateY(-2px);
+        }
+
+        .notion-input {
+            background: var(--notion-bg);
+            border: 1px solid var(--notion-border);
+            border-radius: 3px;
+            transition: all 0.2s ease;
+            color: var(--notion-text);
+        }
+
+        .notion-input:focus {
+            border-color: var(--notion-blue);
+            box-shadow: 0 0 0 2px rgba(46, 170, 220, 0.1);
+        }
+
+        .notion-button {
+            background: var(--notion-bg);
+            border: 1px solid var(--notion-border);
+            border-radius: 3px;
+            transition: all 0.2s ease;
+            color: var(--notion-text);
+        }
+
+        .notion-button:hover {
+            background: var(--notion-hover);
+        }
+
+        .notion-button.primary {
+            background: var(--notion-text);
+            color: var(--notion-bg);
+            border: none;
+        }
+
+        .notion-button.primary:hover {
+            background: #2a2a2a;
+        }
+
+        .avatar-img {
+            width: 64px;
+            height: 64px;
+            object-fit: cover;
+            border-radius: 3px;
+            border: 1px solid var(--notion-border);
+            transition: all 0.2s ease;
+        }
+
+        .avatar-img:hover {
+            transform: translateY(-2px);
+            box-shadow: rgba(15, 15, 15, 0.1) 0px 0px 0px 1px,
+                        rgba(15, 15, 15, 0.1) 0px 2px 4px;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .slide-in {
+            animation: slideIn 0.3s ease-in-out;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-10px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .loading-dots::after {
+            content: '...';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60% { content: '...'; }
+            80%, 100% { content: ''; }
+        }
+
+        .follower-count {
+            color: var(--notion-text);
+            font-size: 0.875rem;
+            opacity: 0.8;
+        }
+
+        .notion-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.5rem;
+        }
+
+        .notion-subtitle {
+            color: rgba(55, 53, 47, 0.65);
+            font-size: 1rem;
+        }
+
+        /* 鼠标跟随效果 */
+        .cursor-follower {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            background: var(--notion-blue);
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0.1;
+            transform: translate(-50%, -50%);
+            transition: transform 0.1s ease;
+            z-index: 9999;
+        }
+
+        /* 侧边栏样式 */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 300px;
+            background: var(--notion-bg);
+            border-right: 1px solid var(--notion-border);
+            padding: 2rem;
+            z-index: 100;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar.collapsed {
+            transform: translateX(-300px);
+        }
+
+        .toggle-sidebar {
+            position: fixed;
+            left: 300px;
+            top: 1rem;
+            z-index: 101;
+            background: var(--notion-bg);
+            border: 1px solid var(--notion-border);
+            border-left: none;
+            padding: 0.5rem;
+            cursor: pointer;
+            transition: left 0.3s ease;
+        }
+
+        .toggle-sidebar.collapsed {
+            left: 0;
+        }
+
+        .main-content {
+            margin-left: 300px;
+            padding: 2rem;
+            transition: margin-left 0.3s ease;
+        }
+
+        .main-content.expanded {
+            margin-left: 0;
+        }
+
+        /* 结果网格布局 */
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            padding: 1rem;
+        }
+
+        .result-card {
+            background: var(--notion-bg);
+            border: 1px solid var(--notion-border);
+            border-radius: 3px;
+            padding: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .result-card:hover {
+            transform: translateY(-2px);
+            box-shadow: rgba(15, 15, 15, 0.1) 0px 0px 0px 1px,
+                        rgba(15, 15, 15, 0.1) 0px 2px 4px;
+        }
+
+        @media (max-width: 1024px) {
+            .results-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                position: relative;
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid var(--notion-border);
+                transform: none !important;
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            .toggle-sidebar {
+                display: none;
+            }
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .platform-selector {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .platform-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 48px;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid var(--notion-border);
+            border-radius: 6px;
+            background: var(--notion-bg);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 500;
+            margin: 0;
+        }
+
+        .platform-button .platform-icon {
+            width: 1.7rem;
+            height: 1.7rem;
+            margin-right: 0.5rem;
+            vertical-align: middle;
+        }
+
+        .platform-button.active {
+            background: var(--notion-text);
+            color: var(--notion-bg);
+            border-color: var(--notion-text);
+        }
+
+        .platform-button:hover {
+            background: var(--notion-hover);
+        }
+
+        .platform-button.active:hover {
+            background: var(--notion-text);
+        }
+
+        @media (max-width: 600px) {
+            .platform-selector {
+                grid-template-columns: 1fr;
+            }
+            .platform-button {
+                font-size: 1rem;
+                height: 44px;
+            }
+        }
+
+        .toast {
+            position: fixed;
+            left: 20px;
+            bottom: 20px;
+            background: var(--notion-text);
+            color: var(--notion-bg);
+            padding: 12px 20px;
+            border-radius: 4px;
+            font-size: 14px;
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <!-- Notion 风格背景插画 -->
+    <div class="notion-bg">
+        <div class="notion-shape shape-1"></div>
+        <div class="notion-shape shape-2"></div>
+        <div class="notion-shape shape-3"></div>
+    </div>
+
+    <!-- 鼠标跟随效果 -->
+    <div class="cursor-follower"></div>
+
+    <!-- 侧边栏切换按钮 -->
+    <button id="toggleSidebar" class="toggle-sidebar">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 18l-6-6 6-6"/>
+        </svg>
+    </button>
+
+    <!-- 侧边栏 -->
+    <div class="sidebar">
+        <div class="mb-8">
+            <div class="flex items-center justify-between mb-8">
+                <h1 class="text-2xl font-bold">粉丝数查询</h1>
+                <a href="/config" class="notion-button px-4 py-2 text-sm">
+                    API 配置
+                </a>
+            </div>
+            <p class="notion-subtitle">多平台数据查询工具</p>
+        </div>
+
+        <!-- 平台选择器 -->
+        <div class="platform-selector">
+            <button class="platform-button active" data-platform="bilibili">
+                <img src="https://www.bilibili.com/favicon.ico" alt="B站" class="platform-icon">
+                B站
+            </button>
+            <button class="platform-button" data-platform="youtube">
+                <img src="https://www.youtube.com/favicon.ico" alt="YouTube" class="platform-icon">
+                YouTube
+            </button>
+            <button class="platform-button" data-platform="wechat_mp">
+                <img src="https://res.wx.qq.com/a/wx_fed/assets/res/NTI4MWU5.ico" alt="公众号" class="platform-icon">
+                公众号
+            </button>
+            <button class="platform-button" data-platform="xiaohongshu">
+                <img src="https://www.xiaohongshu.com/favicon.ico" alt="小红书" class="platform-icon">
+                小红书
+            </button>
+            <button class="platform-button" data-platform="douyin">
+                <img src="https://www.douyin.com/favicon.ico" alt="抖音" class="platform-icon">
+                抖音
+            </button>
+            <button class="platform-button" data-platform="kuaishou">
+                <img src="https://www.kuaishou.com/favicon.ico" alt="快手" class="platform-icon">
+                快手
+            </button>
+            <button class="platform-button" data-platform="wechat_video">
+                <img src="https://res.wx.qq.com/a/wx_fed/assets/res/NTI4MWU5.ico" alt="视频号" class="platform-icon">
+                视频号
+            </button>
+        </div>
+
+        <!-- API配置提示 -->
+        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm text-yellow-700">
+                        YouTube 和 Twitter 查询需要配置 API 密钥。目前仅支持 B站 查询。Telegram频道为公开爬虫。
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 初始查询表单 -->
+        <form id="followerForm" class="space-y-6">
+            <div>
+                <label for="identifier" class="block text-sm font-medium mb-2">用户标识</label>
+                <input type="text" id="identifier" name="identifier" required
+                    class="notion-input w-full px-3 py-2 focus:outline-none"
+                    placeholder="请输入用户标识">
+                <p class="text-xs text-gray-500 mt-1" id="platformHint">
+                    B站：输入UID
+                    <br>
+                    YouTube：输入频道ID
+                    <br>
+                    Telegram频道：输入频道名（如durov）
+                </p>
+            </div>
+            <button type="submit"
+                class="notion-button primary w-full py-2 px-4 text-sm font-medium">
+                查询
+            </button>
+        </form>
+
+        <!-- 修改标识表单 -->
+        <div id="changeIdentifierForm" class="mt-6 hidden">
+            <div class="space-y-6 slide-in">
+                <div>
+                    <label for="newIdentifier" class="block text-sm font-medium mb-2">新的用户标识</label>
+                    <input type="text" id="newIdentifier" name="newIdentifier" required
+                        class="notion-input w-full px-3 py-2 focus:outline-none"
+                        placeholder="请输入新的用户标识">
+                </div>
+                <div class="flex space-x-3">
+                    <button type="button" id="confirmChangeBtn"
+                        class="notion-button primary flex-1 py-2 text-sm">
+                        确认
+                    </button>
+                    <button type="button" id="cancelChangeBtn"
+                        class="notion-button flex-1 py-2 text-sm">
+                        取消
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主内容区域 -->
+    <div class="main-content">
+        <!-- 查询结果 -->
+        <div id="result" class="hidden">
+            <div class="results-grid">
+                <!-- 结果卡片将通过 JavaScript 动态添加 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast 消息提示 -->
+    <div id="toast" class="toast"></div>
+
+    <script>
+        let currentPlatform = 'bilibili';
+        let currentIdentifier = '';
+        let queryHistory = [];
+
+        // 侧边栏切换
+        const toggleSidebar = document.getElementById('toggleSidebar');
+        const sidebar = document.querySelector('.sidebar');
+        const mainContent = document.querySelector('.main-content');
+
+        toggleSidebar.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+            toggleSidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('expanded');
+            
+            // 更新箭头方向
+            const svg = toggleSidebar.querySelector('svg');
+            if (sidebar.classList.contains('collapsed')) {
+                svg.style.transform = 'rotate(180deg)';
+            } else {
+                svg.style.transform = 'rotate(0deg)';
+            }
+        });
+
+        // 平台选择
+        const platformButtons = document.querySelectorAll('.platform-button');
+        platformButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                platformButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                currentPlatform = button.dataset.platform;
+                
+                // 更新输入框提示
+                const placeholder = {
+                    'bilibili': '请输入B站用户UID',
+                    'youtube': '请输入YouTube频道ID',
+                    'wechat_mp': '请输入公众号原始ID',
+                    'xiaohongshu': '请输入小红书用户ID',
+                    'douyin': '请输入抖音号',
+                    'kuaishou': '请输入快手ID',
+                    'wechat_video': '请输入视频号ID'
+                }[currentPlatform];
+                document.getElementById('identifier').placeholder = placeholder;
+                // 更新下方提示
+                const hint = {
+                    'bilibili': 'B站：输入UID',
+                    'youtube': 'YouTube：输入频道ID',
+                    'wechat_mp': '公众号：输入原始ID',
+                    'xiaohongshu': '小红书：输入用户ID',
+                    'douyin': '抖音：输入抖音号',
+                    'kuaishou': '快手：输入ID',
+                    'wechat_video': '视频号：输入ID'
+                }[currentPlatform];
+                document.getElementById('platformHint').innerHTML = hint;
+            });
+        });
+
+        // 检查是否已存在相同的结果
+        function isDuplicateResult(identifier, platform) {
+            return queryHistory.some(item => 
+                item.platform === platform && 
+                (item.username === identifier || item.uid === identifier)
+            );
+        }
+
+        // 更新现有结果
+        function updateExistingResult(identifier, platform, newData) {
+            const resultsGrid = document.querySelector('.results-grid');
+            const cards = resultsGrid.getElementsByClassName('result-card');
+            
+            for (let i = 0; i < cards.length; i++) {
+                const card = cards[i];
+                const cardPlatform = card.dataset.platform;
+                const cardIdentifier = card.dataset.identifier;
+                
+                if (cardPlatform === platform && cardIdentifier === identifier) {
+                    // 更新卡片内容
+                    card.innerHTML = `
+                        <div class="flex items-center space-x-3">
+                            <div class="relative">
+                                <img class="avatar-img" src="${newData.avatar}" alt="用户头像" 
+                                    onerror="this.onerror=null; this.src='https://i0.hdslb.com/bfs/face/member/noface.jpg';"
+                                    referrerpolicy="no-referrer">
+                            </div>
+                            <div class="flex-grow">
+                                <div class="flex items-center mb-1">
+                                    <img src="${getPlatformIcon(platform)}" alt="${getPlatformName(platform)}" class="w-4 h-4 mr-1">
+                                    <h3 class="text-lg font-medium">${newData.username}</h3>
+                                </div>
+                                <p class="follower-count">粉丝数：${newData.follower}</p>
+                            </div>
+                        </div>
+                    `;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // 获取平台图标
+        function getPlatformIcon(platform) {
+            return {
+                'bilibili': 'https://www.bilibili.com/favicon.ico',
+                'youtube': 'https://www.youtube.com/favicon.ico',
+                'wechat_mp': 'https://res.wx.qq.com/a/wx_fed/assets/res/NTI4MWU5.ico',
+                'xiaohongshu': 'https://www.xiaohongshu.com/favicon.ico',
+                'douyin': 'https://www.douyin.com/favicon.ico',
+                'kuaishou': 'https://www.kuaishou.com/favicon.ico',
+                'wechat_video': 'https://res.wx.qq.com/a/wx_fed/assets/res/NTI4MWU5.ico'
+            }[platform];
+        }
+
+        // 获取平台名称
+        function getPlatformName(platform) {
+            return {
+                'bilibili': 'B站',
+                'youtube': 'YouTube',
+                'wechat_mp': '公众号',
+                'xiaohongshu': '小红书',
+                'douyin': '抖音',
+                'kuaishou': '快手',
+                'wechat_video': '视频号'
+            }[platform];
+        }
+
+        // 创建结果卡片
+        function createResultCard(data, platform) {
+            const card = document.createElement('div');
+            card.className = 'result-card slide-in';
+            card.dataset.platform = platform;
+            card.dataset.identifier = data.username;
+            
+            card.innerHTML = `
+                <div class="flex items-center space-x-3">
+                    <div class="relative">
+                        <img class="avatar-img" src="${data.avatar}" alt="用户头像" 
+                            onerror="this.onerror=null; this.src='https://i0.hdslb.com/bfs/face/member/noface.jpg';"
+                            referrerpolicy="no-referrer">
+                    </div>
+                    <div class="flex-grow">
+                        <div class="flex items-center mb-1">
+                            <img src="${getPlatformIcon(platform)}" alt="${getPlatformName(platform)}" class="w-4 h-4 mr-1">
+                            <h3 class="text-lg font-medium">${data.username}</h3>
+                        </div>
+                        <p class="follower-count">粉丝数：${data.follower}</p>
+                    </div>
+                </div>
+            `;
+            return card;
+        }
+
+        // 显示 Toast 消息
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // 查询用户信息
+        async function queryUserInfo(identifier) {
+            try {
+                // 检查页面上是否已存在该卡片（重复）
+                const resultDiv = document.getElementById('result');
+                const resultsGrid = resultDiv.querySelector('.results-grid');
+                let isDuplicate = false;
+                const cards = resultsGrid.getElementsByClassName('result-card');
+                for (let i = 0; i < cards.length; i++) {
+                    const card = cards[i];
+                    if (card.dataset.platform === currentPlatform && card.dataset.identifier === identifier) {
+                        isDuplicate = true;
+                        break;
+                    }
+                }
+                if (isDuplicate) {
+                    showToast('该用户信息已显示');
+                    return;
+                }
+
+                // 不再插入加载中卡片，直接发请求
+                const response = await fetch('/get_followers', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `platform=${currentPlatform}&identifier=${identifier}`
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    resultDiv.classList.remove('hidden');
+                    // 检查页面上是否已存在该卡片（理论上不会重复，但保险）
+                    let updated = false;
+                    for (let i = 0; i < cards.length; i++) {
+                        const card = cards[i];
+                        if (card.dataset.platform === currentPlatform && card.dataset.identifier === data.username) {
+                            card.innerHTML = `
+                                <div class=\"flex items-center space-x-3\">
+                                    <div class=\"relative\">
+                                        <img class=\"avatar-img\" src=\"${data.avatar}\" alt=\"用户头像\" 
+                                            onerror=\"this.onerror=null; this.src='https://i0.hdslb.com/bfs/face/member/noface.jpg';\"
+                                            referrerpolicy=\"no-referrer\">
+                                    </div>
+                                    <div class=\"flex-grow\">
+                                        <div class=\"flex items-center mb-1\">
+                                            <img src=\"${getPlatformIcon(currentPlatform)}\" alt=\"${getPlatformName(currentPlatform)}\" class=\"w-4 h-4 mr-1\">
+                                            <h3 class=\"text-lg font-medium\">${data.username}</h3>
+                                        </div>
+                                        <p class=\"follower-count\">粉丝数：${data.follower}</p>
+                                    </div>
+                                </div>
+                            `;
+                            updated = true;
+                            break;
+                        }
+                    }
+                    if (!updated) {
+                        const resultCard = createResultCard(data, currentPlatform);
+                        resultsGrid.appendChild(resultCard);
+                    }
+                    if (!queryHistory.some(item => item.platform === currentPlatform && item.username === data.username)) {
+                        queryHistory.push({...data, platform: currentPlatform});
+                        if (queryHistory.length > 9) {
+                            resultsGrid.removeChild(resultsGrid.firstChild);
+                            queryHistory.shift();
+                        }
+                    }
+                    currentIdentifier = identifier;
+                } else {
+                    // 查询失败时不显示任何卡片
+                    showToast('查询失败，请检查输入是否正确');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('查询失败，请稍后重试');
+            }
+        }
+
+        // 初始查询表单提交
+        document.getElementById('followerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const identifier = document.getElementById('identifier').value;
+            await queryUserInfo(identifier);
+        });
+
+        // 修改标识按钮点击
+        document.getElementById('changeIdentifierBtn').addEventListener('click', () => {
+            document.getElementById('changeIdentifierForm').classList.remove('hidden');
+        });
+
+        // 确认修改
+        document.getElementById('confirmChangeBtn').addEventListener('click', async () => {
+            const newIdentifier = document.getElementById('newIdentifier').value;
+            if (newIdentifier) {
+                await queryUserInfo(newIdentifier);
+                document.getElementById('changeIdentifierForm').classList.add('hidden');
+            }
+        });
+
+        // 取消修改
+        document.getElementById('cancelChangeBtn').addEventListener('click', () => {
+            document.getElementById('changeIdentifierForm').classList.add('hidden');
+        });
+    </script>
+</body>
+</html> 
